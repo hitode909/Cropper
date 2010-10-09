@@ -23,6 +23,27 @@ sub image {
 }
 
 sub edge_left {
+    my ($self) = @_;
+    $self->_edge_left_index * $self->split_width;
+}
+
+sub _edge_left_index {
+    my ($self) = @_;
+    return $self->{_edge_left_index} if defined $self->{_edge_left_index};
+    my $diffs = $self->diffs_x;
+    my $res_index;
+    my $arrived_white = 0;
+    my $epsilon = 0.0004; # XXX
+    for(my $i = 0; $i < $self->split_size * 0.25; $i++) { # 探索する範囲，てきとう
+        $res_index = $i;
+        if ($self->_get_whiteness_at($i) > 0.9) {
+            $arrived_white++;
+        }
+        if (abs($diffs->[$i]) > $epsilon) {
+            last if ($arrived_white > $self->split_size * 0.03);
+        }
+    }
+    $self->{_edge_left_index} = $res_index;
 }
 
 sub edge_right {
@@ -66,10 +87,12 @@ sub diffs_x {
     return $self->{_diffs_x} if $self->{_diffs_x};
     my $sums = $self->sums_x;
     my $res = [];
-    my $last = 0.5;
+    my $last;
 
     for my $i (@$sums) {
+        $last = $i unless defined $last;
         push @$res, $last - $i;
+        $last = $i;
     }
     $self->{_diffs_x} = $res;
 }
@@ -88,7 +111,7 @@ sub sums_x {
     my $res = [];
 
     for my $i (0..$self->split_size - 1) {
-        push @$res, $self->_get_whiteness(left=>$w * ($i / $self->split_size), top=>$h * 0.2, width=>$w / $self->split_size, height=>$h * 0.6);
+        push @$res, $self->_get_whiteness(left=>$w * ($i / $self->split_size), top=>0, width=>$w / $self->split_size, height=>$h);
     }
     $self->{_sums_x} = $res;
 }
@@ -115,16 +138,7 @@ sub sums_y {
     my $res = [];
 
     for my $i (0..$self->split_size - 1) {
-        my $cropped = $self->image->crop(left=>$w * 0.2, top=>($i / $self->split_size), width=>$w * 0.6, height=>$h / $self->split_size);
-        my $all_usage = $cropped->getcolorusagehash;
-        my $binary_usage = {
-            $self->_black => 0,
-            $self->_white => 0,
-        };
-        for (keys %$all_usage) {
-            $binary_usage->{$self->_key_for_binary($_)} += $all_usage->{$_};
-        }
-        push @$res, $binary_usage->{$self->_white} / ($w * $h * 0.6 / $self->split_size);
+        push @$res, $self->_get_whiteness(left=>0, top=>($i / $self->split_size), width=>$w, height=>$h / $self->split_size);
     }
     $self->{_sums_y} = $res;
 }
@@ -132,6 +146,11 @@ sub sums_y {
 # 黒線を検出くらいの細さになるはず
 sub split_size {
     200;
+}
+
+sub split_width {
+    my ($self) = @_;
+    $self->image->getwidth / $self->split_size;
 }
 
 # private

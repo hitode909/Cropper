@@ -29,7 +29,49 @@ sub _new_from_path : Test(2) {
 
 sub _edge_center : Tests(1) {
     my $image = Cropper::Image->new_from_path('t/file/binary.jpg');
-    is $image->edge_center, 2437;
+    ok $image->edge_center > 1900 && $image->edge_center < 2100;
+}
+
+sub _edge_left : Tests(5) {
+    {
+        my $image = Cropper::Image->new_from_path('t/file/gray.jpg');
+        ok $image->edge_left > 300 && $image->edge_left < 600;
+        warn $image->edge_left;
+        my $crop = $image->image->crop(left => $image->edge_left, top => 0, width => 500, height => $image->image->getheight);
+        $crop->write(file => 'gray.jpg');
+    }
+
+    {
+        my $image = Cropper::Image->new_from_path('t/file/illust.jpg');
+        ok $image->edge_left > 150 && $image->edge_left < 300;
+        warn $image->edge_left;
+        my $crop = $image->image->crop(left => $image->edge_left, top => 0, width => 500, height => $image->image->getheight);
+        $crop->write(file => 'illust.jpg');
+    }
+
+    {
+        my $image = Cropper::Image->new_from_path('t/file/binary.jpg');
+        ok $image->edge_left > 300 && $image->edge_left < 600;
+        warn $image->edge_left;
+        my $crop = $image->image->crop(left => $image->edge_left, top => 0, width => 500, height => $image->image->getheight);
+        $crop->write(file => 'binary.jpg');
+    }
+
+    {
+        my $image = Cropper::Image->new_from_path('t/file/binary_difficult.jpg');
+        ok $image->edge_left > 300 && $image->edge_left < 600;
+        warn $image->edge_left;
+        my $crop = $image->image->crop(left => $image->edge_left, top => 0, width => 500, height => $image->image->getheight);
+        $crop->write(file => 'binary_difficult.jpg');
+    }
+
+    {
+        my $image = Cropper::Image->new_from_path('t/file/binary_side_line.jpg');
+        ok $image->edge_left > 900 && $image->edge_left < 1000;
+        warn $image->edge_left;
+        my $crop = $image->image->crop(left => $image->edge_left, top => 0, width => 500, height => $image->image->getheight);
+        $crop->write(file => 'binary_side_line.jpg');
+    }
 }
 
 sub _get_whiteness : Tests(2) {
