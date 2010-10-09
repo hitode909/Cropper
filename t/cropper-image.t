@@ -43,7 +43,7 @@ sub _edge_left : Tests(5) {
 
     {
         my $image = Cropper::Image->new_from_path('t/file/illust.jpg');
-        ok $image->edge_left > 150 && $image->edge_left < 300;
+        ok $image->edge_left > 50 && $image->edge_left < 300;
         warn $image->edge_left;
         my $crop = $image->image->crop(left => $image->edge_left, top => 0, width => 500, height => $image->image->getheight);
         $crop->write(file => 'illust.jpg');
@@ -70,6 +70,48 @@ sub _edge_left : Tests(5) {
         ok $image->edge_left > 900 && $image->edge_left < 1000;
         warn $image->edge_left;
         my $crop = $image->image->crop(left => $image->edge_left, top => 0, width => 500, height => $image->image->getheight);
+        $crop->write(file => 'binary_side_line.jpg');
+    }
+}
+
+sub _edge_right : Tests(5) {
+    {
+        my $image = Cropper::Image->new_from_path('t/file/gray.jpg');
+        ok $image->edge_right > 2000;
+        warn $image->edge_right;
+        my $crop = $image->image->crop(left => $image->edge_right, top => 0, width => 200, height => $image->image->getheight);
+        $crop->write(file => 'gray.jpg');
+    }
+
+    {
+        my $image = Cropper::Image->new_from_path('t/file/illust.jpg');
+        ok $image->edge_right > 2000;
+        warn $image->edge_right;
+        my $crop = $image->image->crop(left => $image->edge_right, top => 0, width => 200, height => $image->image->getheight);
+        $crop->write(file => 'illust.jpg');
+    }
+
+    {
+        my $image = Cropper::Image->new_from_path('t/file/binary.jpg');
+        ok $image->edge_right > 2000;
+        warn $image->edge_right;
+        my $crop = $image->image->crop(left => $image->edge_right, top => 0, width => 200, height => $image->image->getheight);
+        $crop->write(file => 'binary.jpg');
+    }
+
+    {
+        my $image = Cropper::Image->new_from_path('t/file/binary_difficult.jpg');
+        ok $image->edge_right > 2000;
+        warn $image->edge_right;
+        my $crop = $image->image->crop(left => $image->edge_right, top => 0, width => 200, height => $image->image->getheight);
+        $crop->write(file => 'binary_difficult.jpg');
+    }
+
+    {
+        my $image = Cropper::Image->new_from_path('t/file/binary_side_line.jpg');
+        ok $image->edge_right > 2000;
+        warn $image->edge_right;
+        my $crop = $image->image->crop(left => $image->edge_right, top => 0, width => 200, height => $image->image->getheight);
         $crop->write(file => 'binary_side_line.jpg');
     }
 }
