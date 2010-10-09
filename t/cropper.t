@@ -5,19 +5,28 @@ use base qw(Test::Class);
 use Path::Class;
 use lib file(__FILE__)->dir->parent->subdir('lib')->stringify;
 use Test::More;
+use Test::Exception;
 use Cropper;
 
-sub init : Test(1) {
+sub _init : Test(1) {
     new_ok 'Cropper';
 }
 
-sub new_from_path : Tests(3) {
-    my $image = Cropper->new_from_path('t/file/good.jpg');
+sub _new_from_path : Tests(3) {
+    my $image = Cropper->new_from_path('t/file/binary.jpg');
     ok $image;
-    is $image->path, 't/file/good.jpg';
+    is $image->path, 't/file/binary.jpg';
 
     isa_ok $image->image, 'Cropper::Image';
 }
+
+sub _not_found : Test(1) {
+    dies_ok {
+        Cropper->new_from_path('not_found');
+    };
+}
+
+
 
 __PACKAGE__->runtests;
 

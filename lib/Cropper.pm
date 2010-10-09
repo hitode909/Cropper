@@ -7,6 +7,7 @@ use Cropper::Image;
 
 sub new_from_path {
     my ($class, $path) = @_;
+    die "$path not exist" unless -f $path;
     $class->new({path => $path});
 }
 
