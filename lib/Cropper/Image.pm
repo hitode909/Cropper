@@ -104,7 +104,6 @@ sub _edge_right_index {
     my $best = {at => $self->split_size - 1, score => 0};
     my $epsilon = 0.001; # XXX
     my $current_ok = 0;
-    warn 'R';
     for(my $i =  $self->split_size - 1; $i > $self->split_size * 0.7; $i--) {
         #warn $i . "\t" . $self->_get_whiteness_x_at($i) . "\t" . $diffs->[$i];
         if ($self->_get_whiteness_x_at($i) > 0.9 && abs($diffs->[$i]) < $epsilon) {
