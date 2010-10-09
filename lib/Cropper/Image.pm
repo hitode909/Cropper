@@ -34,31 +34,30 @@ sub edge_bottom {
 }
 
 sub edge_center {
-    # だいたいわかってるから，極小を探すだけでよいのでは
     my ($self) = @_;
-    return $self->{_edge_center} if defined $self->{_edge_center};
+    $self->_edge_center_index * $self->image->getwidth / $self->split_size;
+}
+
+# 真ん中限定で極小を探す 本当にcenterかどうかはcan_split_centerを見る必要がある
+sub _edge_center_index {
+    my ($self) = @_;
+    return $self->{_edge_center_index} if defined $self->{_edge_center_index};
     my $diffs = $self->sums_x;
     my $res_index;
-    for(my $i = int($self->split_size * 0.4); $i < $self->split_size * 0.6; $i++) {
+    for(my $i = int($self->split_size * 0.4); $i < $self->split_size * 0.6; $i++) { # 探索する範囲，てきとう
         $res_index ||= $i;
         if ($diffs->[$res_index] > $diffs->[$i]) {
             $res_index = $i;
         }
     }
-    $self->{_edge_center} = $res_index * $self->image->getwidth / $self->split_size;
-}
-
-sub _edge_center_index {
-    # TODO: これを使うようにする
+    $self->{_edge_center_index} = $res_index;
 }
 
 sub can_split_center {
     my ($self) = @_;
 
-    my $h = $self->image->getheight;
-    my $dx = $self->image->getwidth / $self->split_size;
-    my $white = $self->_get_whiteness(left=>$self->edge_center, top=>$h * 0.2, width=> $dx, height=>$h * 0.6);
-    $white < 0.1;
+    my $white = $self->_get_whiteness_at($self->_edge_center_index);
+    $white < 0.1;               # 0.1以下なら切ってよさそう，てきとう
 }
 
 sub diffs_x {
@@ -72,6 +71,11 @@ sub diffs_x {
         push @$res, $last - $i;
     }
     $self->{_diffs_x} = $res;
+}
+
+sub _get_whiteness_at {
+    my ($self, $index) = @_;
+    $self->sums_x->[$index];
 }
 
 # [{1 = white, 0 = black} x split_size]
