@@ -41,20 +41,28 @@ sub _get_whiteness : Tests(2) {
     }
 }
 
-sub _can_split_center : Tests(2) {
+sub _can_split_center : Tests(3) {
     {
         my $image = Cropper::Image->new_from_path('t/file/binary.jpg');
-        my $crop = $image->image->crop(left => $image->edge_center, top => 0, width => 50, height => $image->image->getheight);
-        $crop->write(file => 'ok.jpg');
-        ok $image->can_split_center;
+        ok $image->can_split_center, 'モノクロ画像，切っていい';
+        # my $crop = $image->image->crop(left => $image->edge_center, top => 0, width => 50, height => $image->image->getheight);
+        # $crop->write(file => 'binary.jpg');
+    }
+
+    {
+        my $image = Cropper::Image->new_from_path('t/file/gray.jpg');
+        ok $image->can_split_center, 'グレイスケール，切っていい';
+        # my $crop = $image->image->crop(left => $image->edge_center, top => 0, width => 50, height => $image->image->getheight);
+        # $crop->write(file => 'gray.jpg');
     }
 
     {
         my $image = Cropper::Image->new_from_path('t/file/illust.jpg');
-        my $crop = $image->image->crop(left => $image->edge_center, top => 0, width => 50, height => $image->image->getheight);
-        $crop->write(file => 'ng.jpg');
-        ok not $image->can_split_center;
+        ok not $image->can_split_center, 'イラストページ，切っちゃだめ';
+        # my $crop = $image->image->crop(left => $image->edge_center, top => 0, width => 50, height => $image->image->getheight);
+        # $crop->write(file => 'illust.jpg');
     }
+
 }
 
 sub _sums_x : Tests(1) {
