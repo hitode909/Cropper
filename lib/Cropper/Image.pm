@@ -27,52 +27,6 @@ sub edge_left {
     $self->_edge_left_index * $self->split_width;
 }
 
-# sub _edge_left_index {
-#     my ($self) = @_;
-#     return $self->{_edge_left_index} if defined $self->{_edge_left_index};
-#     my $diffs = $self->diffs_x;
-#     my $res_index;
-#     my $arrived_white = 0;
-#     my $epsilon = 0.0004; # XXX
-#     for(my $i = $self->split_size * 0.02; $i < $self->split_size * 0.5; $i++) { # 探索する範囲，てきとう
-#         $res_index = $i;
-#         if ($self->_get_whiteness_x_at($i) > 0.9) {
-#             $arrived_white++;
-#         }
-#         if (abs($diffs->[$i]) > $epsilon) {
-#             last if ($arrived_white);# > $self->split_size * 0.03);
-#         }
-#     }
-#     $self->{_edge_left_index} = $res_index;
-# }
-
-# sub _edge_left_index {
-#     my ($self) = @_;
-#     return $self->{_edge_left_index} if defined $self->{_edge_left_index};
-#     my $diffs = $self->diffs_x;
-#     my $res_index;
-#     my $arrived_white = 0;
-#     my $did_reset = 0;
-#     my $epsilon = 0.0001; # XXX
-#     for(my $i = 0; $i < $self->split_size * 0.5; $i++) { # 探索する範囲，てきとう
-#         $res_index = $i;
-#         warn $self->_get_whiteness_x_at($i) . ", " . $diffs->[$i];
-#         if (abs($diffs->[$i]) < 0.2 && $diffs->[$i] < -$epsilon && $arrived_white) {
-#             warn 'down break';
-#             last;
-#         }
-#         if ($self->_get_whiteness_x_at($i) > 0.8) { # 黒い枠を飛ばす
-#             $arrived_white++;
-#         } else {                # 白連続→灰色
-#             warn "reset at $arrived_white" if $arrived_white > 0;
-#             $arrived_white = 0;
-#         }
-
-#     }
-#     $res_index-=1 if $res_index > 0;
-#     $self->{_edge_left_index} = $res_index;
-# }
-
 sub _edge_left_index {
     my ($self) = @_;
     return $self->{_edge_left_index} if defined $self->{_edge_left_index};
@@ -87,7 +41,7 @@ sub _edge_left_index {
             $current_ok++;
         } else {
             if ($current_ok > $best->{score}) {
-                warn "<reset at $i, score $current_ok";
+                warn "<at $i, score $current_ok";
                 $best->{score} = $current_ok;
                 $best->{at} = $i;
             }
@@ -111,7 +65,7 @@ sub _edge_right_index {
             $current_ok++;
         } else {
             if ($current_ok > $best->{score}) {
-                warn ">reset at $i, score $current_ok";
+                warn ">at $i, score $current_ok";
                 $best->{score} = $current_ok;
                 $best->{at} = $i;
             }
@@ -125,17 +79,17 @@ sub _edge_top_index {
     my ($self) = @_;
     return $self->{_edge_top_index} if defined $self->{_edge_top_index};
     my $diffs = $self->diffs_y;
-    my $best = {at => $self->split_size - 1, score => 0};
+    my $best = {at => 0, score => 0};
     my $epsilon = 0.001; # XXX
     my $current_ok = 0;
-    for(my $i = 0; $i < $self->split_size * 0.3; $i++) {
+    for(my $i = $self->split_size * 0.4; $i > $self->split_size * 0.05 ; $i--) { # 内側から見るので最後まで行くと不都合
         # $warn $i . "\t" . $self->_get_whiteness_x_at($i) . "\t" . $diffs->[$i];
         if ($self->_get_whiteness_y_at($i) > 0.9 && abs($diffs->[$i]) < $epsilon) {
             # warn "ok  " . $current_ok;
             $current_ok++;
         } else {
             if ($current_ok > $best->{score}) {
-                warn "^reset at $i, score $current_ok";
+                warn "^at $i, score $current_ok";
                 $best->{score} = $current_ok;
                 $best->{at} = $i;
             }
@@ -149,17 +103,17 @@ sub _edge_bottom_index {
     my ($self) = @_;
     return $self->{_edge_bottom_index} if defined $self->{_edge_bottom_index};
     my $diffs = $self->diffs_y;
-    my $best = {at => 0, score => 0};
+    my $best = {at => $self->split_size * 0.6, score => 0};
     my $epsilon = 0.001; # XXX
     my $current_ok = 0;
-    for(my $i =  $self->split_size - 1; $i > $self->split_size * 0.7; $i--) {
+    for(my $i =  $self->split_size * 0.6; $i < $self->split_size * 0.95; $i++) { # 内側から見るので最後まで行くと不都合
         # warn $i . "\t" . $self->_get_whiteness_x_at($i) . "\t" . $diffs->[$i];
         if ($self->_get_whiteness_y_at($i) > 0.9 && abs($diffs->[$i]) < $epsilon) {
             # warn "ok  " . $current_ok;
             $current_ok++;
         } else {
             if ($current_ok > $best->{score}) {
-                warn "vreset at $i, score $current_ok";
+                warn "vat $i, score $current_ok";
                 $best->{score} = $current_ok;
                 $best->{at} = $i;
             }
@@ -174,34 +128,6 @@ sub edge_right {
     ($self->_edge_right_index + 1) * $self->split_width;
 }
 
-# sub _edge_right_index {
-#     my ($self) = @_;
-#     return $self->{_edge_right_index} if defined $self->{_edge_right_index};
-#     my $diffs = $self->diffs_x;
-#     my $res_index;
-#     my $arrived_white = 0;
-#     my $did_reset = 0;
-#     my $epsilon = 0.0001; # XXX
-#     warn 'R';
-#     for(my $i = $self->split_size-1; $i > $self->split_size * 0.5; $i--) { # 探索する範囲，てきとう
-#         $res_index = $i;
-#         warn $self->_get_whiteness_x_at($i) . ", " . $diffs->[$i];
-#         if (abs($diffs->[$i]) < 0.2 && $diffs->[$i] < -$epsilon && $arrived_white) {
-#             warn 'down break';
-#             last;
-#         }
-#         warn $self->_get_whiteness_x_at($i);
-#         if ($self->_get_whiteness_x_at($i) > 0.8) { # 黒い枠を飛ばす
-#             $arrived_white++;
-#         } else {                # 白連続→灰色
-#             warn "reset at $arrived_white" if $arrived_white > 0;
-#             $arrived_white = 0;
-#         }
-
-#     }
-#     $res_index+=1 if $res_index < $self->split_size-1;
-#     $self->{_edge_right_index} = $res_index;
-# }
 
 sub edge_top {
     my ($self) = @_;
