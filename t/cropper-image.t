@@ -61,7 +61,7 @@ sub _can_split_center : Tests(3) {
 
     {
         my $image = Cropper::Image->new_from_path('t/file/illust.jpg');
-        ok not $image->can_split_center, 'イラストページ，切っちゃだめ';
+        ok ! $image->can_split_center, 'イラストページ，切っちゃだめ';
         # my $crop = $image->image->crop(left => $image->edge_center, top => 0, width => 50, height => $image->image->getheight);
         # $crop->write(file => 'illust.jpg');
     }
