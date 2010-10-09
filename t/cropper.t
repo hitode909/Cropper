@@ -20,10 +20,14 @@ sub _new_from_path : Tests(3) {
     isa_ok $image->image, 'Cropper::Image';
 }
 
-sub _not_found : Test(1) {
+sub _not_found : Test(2) {
     dies_ok {
         Cropper->new_from_path('not_found');
     };
+    dies_ok {
+        Cropper->new_from_path;
+    };
+
 }
 
 

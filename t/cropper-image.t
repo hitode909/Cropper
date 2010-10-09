@@ -12,9 +12,12 @@ sub _init : Test(1) {
     new_ok 'Cropper::Image';
 }
 
-sub _not_found : Test(1) {
+sub _not_found : Test(2) {
     dies_ok {
         Cropper::Image->new_from_path('not_found');
+    };
+    dies_ok {
+        Cropper::Image->new_from_path;
     };
 }
 
