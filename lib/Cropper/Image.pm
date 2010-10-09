@@ -103,7 +103,7 @@ sub _edge_bottom_index {
     my ($self) = @_;
     return $self->{_edge_bottom_index} if defined $self->{_edge_bottom_index};
     my $diffs = $self->diffs_y;
-    my $best = {at => $self->split_size * 0.6, score => 0};
+    my $best = {at => $self->split_size - 1, score => 0};
     my $epsilon = 0.001; # XXX
     my $current_ok = 0;
     for(my $i =  $self->split_size * 0.6; $i < $self->split_size * 0.95; $i++) { # 内側から見るので最後まで行くと不都合
