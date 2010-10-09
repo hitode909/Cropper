@@ -34,11 +34,32 @@ sub edge_bottom {
 }
 
 sub edge_center {
+    # だいたいわかってるから，極小を探すだけでよいのでは
     my ($self) = @_;
-    $self->image->getwidth / 2;
+    return $self->{_edge_center} if defined $self->{_edge_center};
+    my $diffs = $self->sums_x;
+    my $res_index;
+    for(my $i = int($self->split_size * 0.4); $i < $self->split_size * 0.6; $i++) {
+        $res_index ||= $i;
+        if ($diffs->[$res_index] > $diffs->[$i]) {
+            $res_index = $i;
+        }
+    }
+    $self->{_edge_center} = $res_index * $self->image->getwidth / $self->split_size;
 }
 
-# private
+sub _edge_center_index {
+    # TODO: これを使うようにする
+}
+
+sub can_split_center {
+    my ($self) = @_;
+
+    my $h = $self->image->getheight;
+    my $dx = $self->image->getwidth / $self->split_size;
+    my $white = $self->_get_whiteness(left=>$self->edge_center, top=>$h * 0.2, width=> $dx, height=>$h * 0.6);
+    $white < 0.1;
+}
 
 sub diffs_x {
     my ($self) = @_;
@@ -61,17 +82,8 @@ sub sums_x {
     my $h = $self->image->getheight;
     my $res = [];
 
-    for my $i (0..$self->_split_size - 1) {
-        my $cropped = $self->image->crop(left=>$w * ($i / $self->_split_size), top=>$h * 0.2, width=>$w / $self->_split_size, height=>$h * 0.6);
-        my $all_usage = $cropped->getcolorusagehash;
-        my $binary_usage = {
-            $self->_black => 0,
-            $self->_white => 0,
-        };
-        for (keys %$all_usage) {
-            $binary_usage->{$self->_key_for_binary($_)} += $all_usage->{$_};
-        }
-        push @$res, $binary_usage->{$self->_white} / ($w * $h * 0.6 / $self->_split_size);
+    for my $i (0..$self->split_size - 1) {
+        push @$res, $self->_get_whiteness(left=>$w * ($i / $self->split_size), top=>$h * 0.2, width=>$w / $self->split_size, height=>$h * 0.6);
     }
     $self->{_sums_x} = $res;
 }
@@ -97,8 +109,8 @@ sub sums_y {
     my $h = $self->image->getheight;
     my $res = [];
 
-    for my $i (0..$self->_split_size - 1) {
-        my $cropped = $self->image->crop(left=>$w * 0.2, top=>($i / $self->_split_size), width=>$w * 0.6, height=>$h / $self->_split_size);
+    for my $i (0..$self->split_size - 1) {
+        my $cropped = $self->image->crop(left=>$w * 0.2, top=>($i / $self->split_size), width=>$w * 0.6, height=>$h / $self->split_size);
         my $all_usage = $cropped->getcolorusagehash;
         my $binary_usage = {
             $self->_black => 0,
@@ -107,13 +119,32 @@ sub sums_y {
         for (keys %$all_usage) {
             $binary_usage->{$self->_key_for_binary($_)} += $all_usage->{$_};
         }
-        push @$res, $binary_usage->{$self->_white} / ($w * $h * 0.6 / $self->_split_size);
+        push @$res, $binary_usage->{$self->_white} / ($w * $h * 0.6 / $self->split_size);
     }
     $self->{_sums_y} = $res;
 }
 
-sub _split_size {
-    50;
+# 黒線を検出くらいの細さになるはず
+sub split_size {
+    200;
+}
+
+# private
+
+sub _get_whiteness {
+    my ($self, %args) = @_;
+    my $cropped = $self->image->crop(%args);
+    # $cropped->write(file => rand() . '.jpg');
+    my $all_usage = $cropped->getcolorusagehash;
+    my $binary_usage = {
+        $self->_black => 0,
+        $self->_white => 0,
+    };
+    for (keys %$all_usage) {
+        $binary_usage->{$self->_key_for_binary($_)} += $all_usage->{$_};
+    }
+    $binary_usage->{$self->_white} / ($args{width} * $args{height});
+
 }
 
 sub _key_for_binary {

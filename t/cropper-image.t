@@ -29,24 +29,52 @@ sub _edge_center : Tests(1) {
     is $image->edge_center, 2437;
 }
 
+sub _get_whiteness : Tests(2) {
+    {
+        my $image = Cropper::Image->new_from_path('t/file/white.jpg');
+        ok $image->_get_whiteness(width => 10, height => 10, top => 0, left => 0) > 0.9;
+    }
+
+    {
+        my $image = Cropper::Image->new_from_path('t/file/black.jpg');
+        ok $image->_get_whiteness(width => 10, height => 10, top => 0, left => 0) < 0.1;
+    }
+}
+
+sub _can_split_center : Tests(2) {
+    {
+        my $image = Cropper::Image->new_from_path('t/file/binary.jpg');
+        my $crop = $image->image->crop(left => $image->edge_center, top => 0, width => 50, height => $image->image->getheight);
+        $crop->write(file => 'ok.jpg');
+        ok $image->can_split_center;
+    }
+
+    {
+        my $image = Cropper::Image->new_from_path('t/file/illust.jpg');
+        my $crop = $image->image->crop(left => $image->edge_center, top => 0, width => 50, height => $image->image->getheight);
+        $crop->write(file => 'ng.jpg');
+        ok not $image->can_split_center;
+    }
+}
+
 sub _sums_x : Tests(1) {
     my $image = Cropper::Image->new_from_path('t/file/binary.jpg');
-    is @{$image->sums_x}, $image->_split_size;
+    is @{$image->sums_x}, $image->split_size;
 }
 
 sub _diffs_x : Tests(1) {
     my $image = Cropper::Image->new_from_path('t/file/binary.jpg');
-    is @{$image->diffs_x}, $image->_split_size;
+    is @{$image->diffs_x}, $image->split_size;
 }
 
 sub _sums_y : Tests(1) {
     my $image = Cropper::Image->new_from_path('t/file/binary.jpg');
-    is @{$image->sums_y}, $image->_split_size;
+    is @{$image->sums_y}, $image->split_size;
 }
 
 sub _diffs_y : Tests(1) {
     my $image = Cropper::Image->new_from_path('t/file/binary.jpg');
-    is @{$image->diffs_y}, $image->_split_size;
+    is @{$image->diffs_y}, $image->split_size;
 }
 
 __PACKAGE__->runtests;
