@@ -1,4 +1,4 @@
-cropper.pl
+Cropper
 =========
 
 概要
@@ -11,7 +11,7 @@ cropper.pl
 
 起動時の引数に，分割したい本の画像が入ったディレクトリのパスを指定します．スペース区切りで複数指定できます．
 
-    perl kindai.rb ls ~/Documents/正義の叫/
+    perl cropper.pl ~/Documents/正義の叫/
 
 この例の場合，以下に，分割された画像が保存されます．
 
