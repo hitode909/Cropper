@@ -121,27 +121,31 @@ sub _find_edge {
     return $first;
 }
 
-# 真ん中限定で極小を探す 本当にcenterかどうかはcan_split_centerを見る必要がある
 sub _edge_center_index {
     my ($self) = @_;
-    return 50;
-    return $self->{_edge_center_index} if defined $self->{_edge_center_index};
-    my $diffs = $self->sums_x;
-    my $res_index;
-    for(my $i = int($self->split_size * 0.4); $i < $self->split_size * 0.6; $i++) { # 探索する範囲，てきとう
-        $res_index ||= $i;
-        if ($diffs->[$res_index] > $diffs->[$i]) {
-            $res_index = $i;
-        }
-    }
-    $self->{_edge_center_index} = $res_index;
+    $self->_edge_center_info->{index};
 }
 
 sub can_split_center {
     my ($self) = @_;
+    $self->_edge_center_info->{white} < 0.4;
+}
 
-    my $white = $self->_get_whiteness_x_at($self->_edge_center_index);
-    $white < 0.1;               # 0.1以下なら切ってよさそう，てきとう
+# 真ん中限定で極小を探す 本当にcenterかどうかはcan_split_centerを見る必要がある
+sub _edge_center_info {
+    my ($self) = @_;
+    return $self->{_edge_center_info} if defined $self->{_edge_center_info};
+    my $res = {index => 0, white => 1};
+    for(my $i = int($self->split_size * 0.4); $i < $self->split_size * 0.6; $i+=0.5) { # 精度アップ
+        my $current_white = $self->_get_whiteness(left => $self->split_width * $i, width => $self->split_width / 2, top => 0, height => $self->image->getheight);
+        # $self->image->crop(left => $self->split_width * $i, width => $self->split_width / 4, top => 0, height => $self->image->getheight)->write(file => "$i-${current_white}.jpg");
+        if ($res->{white} > $current_white) {
+            warn "center: $i whiteness: $current_white";
+            $res->{index} = $i;
+            $res->{white} = $current_white;
+        }
+    }
+    $self->{_edge_center_info} = $res;
 }
 
 sub diffs_x {
