@@ -14,7 +14,7 @@ unless (@ARGV) {
 }
 
 for my $input_dir (@ARGV) {
-    my $output_dir = $input_dir . '_crop';
+    my $output_dir = dir($input_dir, 'crop');
     mkdir($output_dir);
     my @input_files = File::Find::Rule->file->name('*.jpg')->in($input_dir);
     for my $input_file (@input_files) {
