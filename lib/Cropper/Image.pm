@@ -53,7 +53,7 @@ sub _edge_left_index {
     my $w = $self->image->getwidth;
     my $h = $self->image->getheight;
     warn 'left';
-    $self->{_edge_left_index} = $self->_find_edge([$self->split_size*0.05..($self->split_size * 0.25)], sub { my $i = shift; (width => $self->split_width * 2, left => $w * $i / $self->split_size, top => 0, height => $h) });
+    $self->{_edge_left_index} = $self->_find_edge([$self->split_size*0.02..($self->split_size * 0.25)], sub { my $i = shift; (width => $self->split_width * 2, left => $w * $i / $self->split_size, top => 0, height => $h) });
 }
 
 sub _edge_right_index {
@@ -62,7 +62,7 @@ sub _edge_right_index {
     my $w = $self->image->getwidth;
     my $h = $self->image->getheight;
     warn 'right';
-    $self->{_edge_right_index} = $self->_find_edge([reverse ($self->split_size * 0.75..$self->split_size*0.95)], sub { my $i = shift; (width => $self->split_width * 2, left => $w * $i / $self->split_size, top => 0, height => $h) });
+    $self->{_edge_right_index} = $self->_find_edge([reverse ($self->split_size * 0.75..$self->split_size*0.98)], sub { my $i = shift; (width => $self->split_width * 2, left => $w * $i / $self->split_size, top => 0, height => $h) });
 }
 
 sub _edge_top_index {
@@ -71,7 +71,7 @@ sub _edge_top_index {
     my $w = $self->image->getwidth;
     my $h = $self->image->getheight;
     warn 'top';
-    $self->{_edge_top_index} = $self->_find_edge([$self->split_size*0.05..($self->split_size * 0.25)], sub { my $i = shift; (width => $w, left => 0, top => $i * $self->split_height, height => $self->split_height * 2) });
+    $self->{_edge_top_index} = $self->_find_edge([$self->split_size*0.02..($self->split_size * 0.25)], sub { my $i = shift; (width => $w, left => 0, top => $i * $self->split_height, height => $self->split_height * 2) });
 }
 
 sub _edge_bottom_index {
@@ -80,7 +80,7 @@ sub _edge_bottom_index {
     my $w = $self->image->getwidth;
     my $h = $self->image->getheight;
     warn 'bottom';
-    $self->{_edge_bottom_index} = $self->_find_edge([reverse ($self->split_size * 0.75..$self->split_size*0.95)], sub { my $i = shift; (width => $w, left => 0, top => $i * $self->split_height, height => $self->split_height * 2) });
+    $self->{_edge_bottom_index} = $self->_find_edge([reverse ($self->split_size * 0.75..$self->split_size*0.98)], sub { my $i = shift; (width => $w, left => 0, top => $i * $self->split_height, height => $self->split_height * 2) });
 }
 
 sub _find_edge {
@@ -116,20 +116,20 @@ sub _find_edge {
             $second = $_;
         }
     }
-    use Data::Dumper; warn Dumper [$first, $second];
+    return $second if ($first < $self->split_size * 0.05 && $second != -1);
+    return $second if ($first > $self->split_size * 0.95 && $second != -1);
     return $first;
-    # # よさそうなの2こできたので，0.5に近いほうを選ぶ
-    # if (abs($first - $self->split_size * 0.5) < abs($second - $self->split_size * 0.5)) {
-    #     warn $first;
-    #     return $first;
-    # } else {
-    #     warn $second;
-    #     return $second;
-    # }
-    # # return $second;
-    # return $second if ($first < $self->split_size * 0.05 && $second != -1);
-    # return $second if ($first > $self->split_size * 0.95 && $second != -1);
-    # return $first;
+#     use Data::Dumper; warn Dumper [$first, $second];
+#     # # よさそうなの2こできたので，0.5に近いほうを選ぶ
+#     if (abs($first - $self->split_size * 0.5) < abs($second - $self->split_size * 0.5)) {
+#         warn $first;
+#         return $first;
+#     } else {
+#         warn $second;
+#         return $second;
+#     }
+#     # return $second;
+#     return $first;
 }
 
 sub _edge_center_index {
