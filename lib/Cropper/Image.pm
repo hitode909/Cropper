@@ -13,6 +13,11 @@ sub new_from_path {
     $class->new({path => $path});
 }
 
+sub crop {
+    my ($self, %args) = @_;
+    $self->image->crop(%args);
+}
+
 sub image {
     my ($self) = @_;
     return $self->{_image} if $self->{_image};
@@ -52,7 +57,6 @@ sub _edge_left_index {
     return $self->{_edge_left_index} if defined $self->{_edge_left_index};
     my $w = $self->image->getwidth;
     my $h = $self->image->getheight;
-    warn 'left';
     $self->{_edge_left_index} = $self->_find_edge([$self->split_size*0.02..($self->split_size * 0.25)], sub { my $i = shift; (width => $self->split_width * 2, left => $w * $i / $self->split_size, top => 0, height => $h) });
 }
 
@@ -61,7 +65,6 @@ sub _edge_right_index {
     return $self->{_edge_right_index} if defined $self->{_edge_right_index};
     my $w = $self->image->getwidth;
     my $h = $self->image->getheight;
-    warn 'right';
     $self->{_edge_right_index} = $self->_find_edge([reverse ($self->split_size * 0.75..$self->split_size*0.98)], sub { my $i = shift; (width => $self->split_width * 2, left => $w * $i / $self->split_size, top => 0, height => $h) });
 }
 
@@ -70,7 +73,6 @@ sub _edge_top_index {
     return $self->{_edge_top_index} if defined $self->{_edge_top_index};
     my $w = $self->image->getwidth;
     my $h = $self->image->getheight;
-    warn 'top';
     $self->{_edge_top_index} = $self->_find_edge([$self->split_size*0.02..($self->split_size * 0.25)], sub { my $i = shift; (width => $w, left => 0, top => $i * $self->split_height, height => $self->split_height * 2) });
 }
 
@@ -79,7 +81,6 @@ sub _edge_bottom_index {
     return $self->{_edge_bottom_index} if defined $self->{_edge_bottom_index};
     my $w = $self->image->getwidth;
     my $h = $self->image->getheight;
-    warn 'bottom';
     $self->{_edge_bottom_index} = $self->_find_edge([reverse ($self->split_size * 0.75..$self->split_size*0.98)], sub { my $i = shift; (width => $w, left => 0, top => $i * $self->split_height, height => $self->split_height * 2) });
 }
 
@@ -95,7 +96,6 @@ sub _find_edge {
         $last = $current unless $last;
         my $diff = abs($current - $last);
         if ($diff > $eps && !$on) {
-            warn "on $i";
             $on = $i;
         } elsif ($diff <= $eps && $on) {
             $on = 0;
@@ -105,7 +105,6 @@ sub _find_edge {
         }
         $last = $current;
     }
-
     my $first = -1;
     my $second = -1;
     for (keys %$sums) {
@@ -115,6 +114,9 @@ sub _find_edge {
         } elsif ($sums->{$_} > $sums->{$second}) {
             $second = $_;
         }
+    }
+    if ($first == -1) {         # 失敗したときは初期値(つまり，紙の端))
+        return $range->[0];
     }
     return $second if ($first < $self->split_size * 0.05 && $second != -1);
     return $second if ($first > $self->split_size * 0.95 && $second != -1);
@@ -139,6 +141,7 @@ sub _edge_center_index {
 
 sub can_split_center {
     my ($self) = @_;
+    return 1;
     $self->_edge_center_info->{white} < 0.4;
 }
 
@@ -151,7 +154,7 @@ sub _edge_center_info {
         my $current_white = $self->_get_whiteness(left => $self->split_width * $i, width => $self->split_width / 2, top => 0, height => $self->image->getheight);
         # $self->image->crop(left => $self->split_width * $i, width => $self->split_width / 4, top => 0, height => $self->image->getheight)->write(file => "$i-${current_white}.jpg");
         if ($res->{white} > $current_white) {
-            warn "center: $i whiteness: $current_white";
+            # warn "center: $i whiteness: $current_white";
             $res->{index} = $i;
             $res->{white} = $current_white;
         }
