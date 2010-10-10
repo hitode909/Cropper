@@ -24,119 +24,22 @@ sub image {
 
 sub edge_left {
     my ($self) = @_;
-    $self->_edge_left_index * $self->split_width;
-}
-
-sub _edge_left_index {
-    my ($self) = @_;
-    return $self->{_edge_left_index} if defined $self->{_edge_left_index};
-    my $diffs = $self->diffs_x;
-    my $best = {at => 0, score => 0};
-    my $epsilon = 0.001; # XXX
-    my $current_ok = 0;
-    for(my $i = 0; $i < $self->split_size * 0.3; $i++) {
-        #warn $i . "\t" . $self->_get_whiteness_x_at($i) . "\t" . $diffs->[$i];
-        if ($self->_get_whiteness_x_at($i) > 0.9 && abs($diffs->[$i]) < $epsilon) {
-            # warn "ok  " . $current_ok;
-            $current_ok++;
-        } else {
-            if ($current_ok > $best->{score}) {
-                warn "<at $i, score $current_ok";
-                $best->{score} = $current_ok;
-                $best->{at} = $i;
-            }
-            $current_ok = 0;
-        }
-    }
-    $self->{_edge_left_index} = $best->{at};
-}
-
-sub _edge_right_index {
-    my ($self) = @_;
-    return $self->{_edge_right_index} if defined $self->{_edge_right_index};
-    my $diffs = $self->diffs_x;
-    my $best = {at => $self->split_size - 1, score => 0};
-    my $epsilon = 0.001; # XXX
-    my $current_ok = 0;
-    for(my $i =  $self->split_size - 1; $i > $self->split_size * 0.7; $i--) {
-        #warn $i . "\t" . $self->_get_whiteness_x_at($i) . "\t" . $diffs->[$i];
-        if ($self->_get_whiteness_x_at($i) > 0.9 && abs($diffs->[$i]) < $epsilon) {
-            # warn "ok  " . $current_ok;
-            $current_ok++;
-        } else {
-            if ($current_ok > $best->{score}) {
-                warn ">at $i, score $current_ok";
-                $best->{score} = $current_ok;
-                $best->{at} = $i;
-            }
-            $current_ok = 0;
-        }
-    }
-    $self->{_edge_right_index} = $best->{at};
-}
-
-sub _edge_top_index {
-    my ($self) = @_;
-    return $self->{_edge_top_index} if defined $self->{_edge_top_index};
-    my $diffs = $self->diffs_y;
-    my $best = {at => 0, score => 0};
-    my $epsilon = 0.001; # XXX
-    my $current_ok = 0;
-    for(my $i = $self->split_size * 0.4; $i > $self->split_size * 0.05 ; $i--) { # 内側から見るので最後まで行くと不都合
-        # $warn $i . "\t" . $self->_get_whiteness_x_at($i) . "\t" . $diffs->[$i];
-        if ($self->_get_whiteness_y_at($i) > 0.9 && abs($diffs->[$i]) < $epsilon) {
-            # warn "ok  " . $current_ok;
-            $current_ok++;
-        } else {
-            if ($current_ok > $best->{score}) {
-                warn "^at $i, score $current_ok";
-                $best->{score} = $current_ok;
-                $best->{at} = $i;
-            }
-            $current_ok = 0;
-        }
-    }
-    $self->{_edge_top_index} = $best->{at};
-}
-
-sub _edge_bottom_index {
-    my ($self) = @_;
-    return $self->{_edge_bottom_index} if defined $self->{_edge_bottom_index};
-    my $diffs = $self->diffs_y;
-    my $best = {at => $self->split_size - 1, score => 0};
-    my $epsilon = 0.001; # XXX
-    my $current_ok = 0;
-    for(my $i =  $self->split_size * 0.6; $i < $self->split_size * 0.95; $i++) { # 内側から見るので最後まで行くと不都合
-        # warn $i . "\t" . $self->_get_whiteness_x_at($i) . "\t" . $diffs->[$i];
-        if ($self->_get_whiteness_y_at($i) > 0.9 && abs($diffs->[$i]) < $epsilon) {
-            # warn "ok  " . $current_ok;
-            $current_ok++;
-        } else {
-            if ($current_ok > $best->{score}) {
-                warn "vat $i, score $current_ok";
-                $best->{score} = $current_ok;
-                $best->{at} = $i;
-            }
-            $current_ok = 0;
-        }
-    }
-    $self->{_edge_bottom_index} = $best->{at};
+    ($self->_edge_left_index - 0.5) * $self->split_width;
 }
 
 sub edge_right {
     my ($self) = @_;
-    ($self->_edge_right_index + 1) * $self->split_width;
+    ($self->_edge_right_index + 1.5) * $self->split_width;
 }
-
 
 sub edge_top {
     my ($self) = @_;
-    $self->_edge_top_index * $self->split_height;
+    ($self->_edge_top_index - 0.5) * $self->split_height;
 }
 
 sub edge_bottom {
     my ($self) = @_;
-    ($self->_edge_bottom_index - 1)* $self->split_height;
+    ($self->_edge_bottom_index + 1.5)* $self->split_height;
 }
 
 sub edge_center {
@@ -144,9 +47,84 @@ sub edge_center {
     $self->_edge_center_index * $self->image->getwidth / $self->split_size;
 }
 
+sub _edge_left_index {
+    my ($self) = @_;
+    return $self->{_edge_left_index} if defined $self->{_edge_left_index};
+    my $w = $self->image->getwidth;
+    my $h = $self->image->getheight;
+    warn 'left';
+    $self->{_edge_left_index} = $self->_find_edge([0..25], sub { my $i = shift; (width => $w / 50, left => $w * $i / 100, top => 0, height => $h) });
+}
+
+sub _edge_right_index {
+    my ($self) = @_;
+    return $self->{_edge_right_index} if defined $self->{_edge_right_index};
+    my $w = $self->image->getwidth;
+    my $h = $self->image->getheight;
+    warn 'right';
+    $self->{_edge_right_index} = $self->_find_edge([reverse (75..99)], sub { my $i = shift; (width => $w / 50, left => $w * $i / 100, top => 0, height => $h) });
+}
+
+sub _edge_top_index {
+    my ($self) = @_;
+    return $self->{_edge_top_index} if defined $self->{_edge_top_index};
+    my $w = $self->image->getwidth;
+    my $h = $self->image->getheight;
+    warn 'top';
+    $self->{_edge_top_index} = $self->_find_edge([0..25], sub { my $i = shift; (width => $w, left => 0, top => $h * $i / 100, height => $h / 50) });
+}
+
+sub _edge_bottom_index {
+    my ($self) = @_;
+    return $self->{_edge_bottom_index} if defined $self->{_edge_bottom_index};
+    my $w = $self->image->getwidth;
+    my $h = $self->image->getheight;
+    warn 'bottom';
+    $self->{_edge_bottom_index} = $self->_find_edge([reverse (75..99)], sub { my $i = shift; (width => $w, left => 0, top => $h * $i / 100, height => $h / 50) });
+}
+
+sub _find_edge {
+    my ($self, $range, $slice_position) = @_;
+
+    my $on = undef;
+    my $last = undef;
+    my $eps = 0.001;
+    my $sums = {-1 => 0};
+    for my $i (@$range) {
+        my $current = $self->_get_whiteness(&$slice_position($i));
+        $last = $current unless $last;
+        my $diff = abs($current - $last);
+        if ($diff > $eps && !$on) {
+            warn "on $i";
+            $on = $i;
+        } elsif ($diff <= $eps && $on) {
+            $on = 0;
+        }
+        if ($on) {
+            $sums->{$on} += $diff;
+        }
+        $last = $current;
+    }
+
+    my $first = -1;
+    my $second = -1;
+    for (keys %$sums) {
+        if ($sums->{$_} > $sums->{$first}) {
+            $second = $first;
+            $first = $_;
+        } elsif ($sums->{$_} > $sums->{$second}) {
+            $second = $_;
+        }
+    }
+    return $second if ($first < 2 && $second != -1);
+    return $second if ($first > 97 && $second != -1);
+    return $first;
+}
+
 # 真ん中限定で極小を探す 本当にcenterかどうかはcan_split_centerを見る必要がある
 sub _edge_center_index {
     my ($self) = @_;
+    return 50;
     return $self->{_edge_center_index} if defined $self->{_edge_center_index};
     my $diffs = $self->sums_x;
     my $res_index;
@@ -236,7 +214,7 @@ sub sums_y {
 
 # 黒線を検出くらいの細さになるはず
 sub split_size {
-    200;
+    100;
 }
 
 sub split_width {
